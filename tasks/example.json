@@ -1,0 +1,7 @@
+[
+  {
+    "task_id": "example",
+    "task": "You will find a simple markdown to HTML converter. Run `pytest tests.py` and fix any errors you encounter. Do not edit the tests file.",
+    "dir_name": "example"
+  }
+]
