@@ -1,1 +1,6 @@
-__pycache__/
+**__pycache__/
+envs/
+runs/
+helpers/next_exp_number
+tasks/
+**.egg-info/

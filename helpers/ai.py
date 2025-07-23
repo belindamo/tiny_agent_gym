@@ -1,16 +1,14 @@
-from openai import OpenAI
-from dotenv import load_dotenv
-import dspy
-
-from typing import Optional, Type, TypeVar, Generic, Any, get_origin, get_args
-from pydantic import BaseModel, create_model, Field
-
 import os
+import dspy
+from typing import Optional
+from pydantic import BaseModel
+from dotenv import load_dotenv
+
 load_dotenv()
 
-lm = dspy.LM("gemini/gemini-2.5-flash", api_key=os.getenv("GOOGLE_API_KEY"), temperature=0, max_tokens=1000000)
+lm = dspy.LM("openai/gpt-4o", api_key=os.getenv('OPENAI_API_KEY'), temperature=0)
 dspy.configure(lm=lm)
-    
+ 
 def ai(user_prompt: str, system_prompt: Optional[str] = None):
     class QA(dspy.Signature):
         __doc__ = system_prompt
@@ -20,4 +18,3 @@ def ai(user_prompt: str, system_prompt: Optional[str] = None):
         
     predict = dspy.Predict(QA)
     return predict(user_prompt=user_prompt).response
-    

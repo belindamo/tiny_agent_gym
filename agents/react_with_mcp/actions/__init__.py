@@ -1,7 +1,6 @@
 from typing import Tuple
 from .run_terminal_command import run_terminal_command
 
-# DSL for available actions
 ACTIONS = {
     "run_terminal_command": {
       "description": "Run a terminal command and return stdout/stderr", 

@@ -1,12 +1,19 @@
 [project]
 name = "tiny-agent-gym"
 version = "0.1.0"
-description = "Add your description here"
+description = "A lightweight, local-first agent execution framework"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.10"
 dependencies = [
     "dspy==2.6.23",
     "mcp>=1.12.1",
     "pydantic>=2.11.7",
     "python-dotenv>=1.1.1",
 ]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["helpers*", "agents*"]
+
+[project.scripts]
+tag = "main:cli_main"

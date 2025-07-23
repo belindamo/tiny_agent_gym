@@ -49,29 +49,3 @@ def run_terminal_command(env_path, command):
     # Change back to original directory
     os.chdir(original_dir)
 
-
-if __name__ == "__main__":
-  # Example usage
-  stdout, stderr = run_terminal_command("envs/vanilla_nn", "python --version")
-  print(f"stdout: {stdout}")
-  print(f"stderr: {stderr}")
-
-  # Example creating a temp file
-  stdout, stderr = run_terminal_command("envs/vanilla_nn", "echo 'test content' > tmp.txt")
-  print(f"Create tmp.txt stdout: {stdout}")
-  print(f"Create tmp.txt stderr: {stderr}")
-
-  # Verify file exists
-  stdout, stderr = run_terminal_command("envs/vanilla_nn", "ls tmp.txt")
-  print(f"Verify tmp.txt exists stdout: {stdout}")
-  print(f"Verify tmp.txt exists stderr: {stderr}")
-
-  # Example removing the temp file
-  stdout, stderr = run_terminal_command("envs/vanilla_nn", "rm tmp.txt")
-  print(f"Remove tmp.txt stdout: {stdout}")
-  print(f"Remove tmp.txt stderr: {stderr}")
-
-  # Verify file was removed
-  stdout, stderr = run_terminal_command("envs/vanilla_nn", "ls tmp.txt 2>/dev/null || echo 'File removed'")
-  print(f"Verify tmp.txt removed stdout: {stdout}")
-  print(f"Verify tmp.txt removed stderr: {stderr}")

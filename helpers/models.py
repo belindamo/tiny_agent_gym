@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional, Callable
+from typing import Optional, Callable, List, Dict, Any
 from functools import wraps
 import inspect
 
@@ -21,6 +21,26 @@ class AgentResult(BaseModel):
 class EvalResult(BaseModel):
   passed: bool = Field(..., description="Whether the task succeeded")
   result: str = Field(..., description="Detailed explanation of the evaluation result")
+
+class TaskLog(BaseModel):
+  task_id: int = Field(..., description="The sequential task number")
+  task: Task = Field(..., description="The original task")
+  ms: float = Field(..., description="Task execution time in milliseconds")
+  result: Optional[AgentResult] = Field(None, description="Agent result if available")
+  llm_evaluation: Optional[EvalResult] = Field(None, description="LLM evaluation result if available")
+  evaluation: Optional[EvalResult] = Field(None, description="Task-specific evaluation result if available")
+
+class RunSummary(BaseModel):
+  agent_name: str = Field(..., description="Name/path of the agent used for this run")
+  run_dir: str = Field(..., description="Directory where run outputs are stored")
+  total_time: str = Field(..., description="Total execution time in seconds", example="56.03s")
+  total_score: str = Field(..., description="Score as completed/total tasks", example="1/1")
+  task_logs: List[TaskLog] = Field(..., description="Detailed logs for each task")
+  # Optional fields - only included when data is available
+  input_tokens: Optional[int] = Field(None, description="Total input tokens across all tasks")
+  output_tokens: Optional[int] = Field(None, description="Total output tokens across all tasks")
+  total_tokens: Optional[int] = Field(None, description="Total tokens (input + output)")
+  total_cost: Optional[float] = Field(None, description="Total cost across all tasks")
 
 class Run(BaseModel):
   task: Task

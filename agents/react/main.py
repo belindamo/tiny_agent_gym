@@ -1,7 +1,7 @@
 from .actions import ActionsReAct
 from .react import ReAct
-from models import Run, AgentResult, agent_main
-from .utils.ai import dspy, lm
+from helpers.models import Run, AgentResult, agent_main
+from helpers.ai import dspy, lm
 
 class ExecuteExperiment(dspy.Signature):
     """Execute this experiment based on the conditions provided."""
@@ -17,7 +17,7 @@ class ExecuteExperiment(dspy.Signature):
 @agent_main
 def main(r: Run) -> AgentResult:
   try:
-    print(f"ReAct agent processing task:")
+    print(f"React agent processing task: {r.task.task}")
     problem = r.task.task
     env = r.dir_name
 
@@ -35,16 +35,10 @@ def main(r: Run) -> AgentResult:
     )
     print(result)
     
-    # Debug: Check lm.history
-    print(f"DEBUG: lm.history length: {len(lm.history)}")
-    print(f"DEBUG: lm.history sample: {lm.history[-1] if lm.history else 'Empty'}")
-    
     # Use token counts from the result, not from local lm.history
     input_tokens = result.get('input_tokens', 0)
     output_tokens = result.get('output_tokens', 0)
     cost = result.get('cost', 0)
-    
-    print(f"DEBUG: Tokens from result - input: {input_tokens}, output: {output_tokens}, cost: {cost}")
     
     return AgentResult(
       completed=result['completed'], 

@@ -1,8 +1,8 @@
 import json
 from pathlib import Path
 
-from ai import dspy
-from models import Task, EvalResult
+from helpers.ai import dspy
+from helpers.models import Task, EvalResult
 
 class TaskEvaluator(dspy.Signature):
     """Evaluate if a task was completed successfully based on its success criteria."""
@@ -94,18 +94,3 @@ def evaluate_task(task: Task, run_dir: str) -> EvalResult:
         passed=result.passed,
         result=f"Reasoning:\n{result.reasoning}\n\nDetails:\n{result.details}"
     )
-
-if __name__ == "__main__":
-    # Simple test case
-    test_task = Task(
-        task_id="test_task",
-        task="Create a README.md file",
-        success_criteria="README.md exists and contains Installation and Usage sections",
-        dir_name="test_env"
-    )
-    
-    print("Running test evaluation...")
-    # This would need a real run directory to work
-    # result = evaluate_task(test_task, "test_run_dir")
-    # print(f"Result: {result}")
-    print("LLM Evaluator loaded successfully!")

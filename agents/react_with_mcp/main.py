@@ -1,13 +1,13 @@
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
-from models import Run, AgentResult, agent_main
-from .utils.ai import dspy, lm
+from helpers.models import Run, AgentResult, agent_main
+from helpers.ai import dspy, lm
 from .react import ReAct
 from .actions import Actions
 from pathlib import Path
 
-class ResearchAgent:
+class ReactAgent:
   
     def __init__(self, dir_name):
         self.dir_name = dir_name
@@ -19,8 +19,6 @@ class ResearchAgent:
         Args:
             task: The description of the task to be solved.
         """
-        print(f"--- Starting Research Agent ---")
-        print(f"Task: {task}")
 
         SERVER_PARAMS_FS =  StdioServerParameters(
             command="npx",
@@ -79,7 +77,7 @@ class ResearchAgent:
 
                         # Configure and run the ReAct agent
                         print("\nConfiguring ReAct agent...")
-                        react = ReAct(ExecuteExperiment, tools=dspy_tools, strict_iters=20)
+                        react = ReAct(ExecuteExperiment, tools=dspy_tools)
 
                         print("Running ReAct agent...")
                         result = await react.acall(task=task)
@@ -92,11 +90,11 @@ class ResearchAgent:
 @agent_main
 async def main(r: Run):
   try:
-    print(f"React MCP agent processing task:")
+    print(f"React MCP agent processing task: {r.task.task}")
     task = r.task.task
     dir_name = Path(r.dir_name).resolve()
     
-    agent = ResearchAgent(dir_name=dir_name)
+    agent = ReactAgent(dir_name=dir_name)
     result = await agent.run(task=task)
     
     input_tokens = sum([x.get('usage', {}).get('prompt_tokens', 0) for x in lm.history])

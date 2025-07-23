@@ -1,5 +1,5 @@
 """
-Modded dspy 2.6.23 version of ReAct to fix a number of iterations
+Modded dspy 2.6.23 version of ReAct with option to pass in a fixed number of iterations
 """
 
 import logging

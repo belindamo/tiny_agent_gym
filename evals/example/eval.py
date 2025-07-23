@@ -1,4 +1,4 @@
-from models import Run, EvalResult, eval_function
+from helpers.models import Run, EvalResult, eval_function
 import subprocess
 import re
 from pathlib import Path

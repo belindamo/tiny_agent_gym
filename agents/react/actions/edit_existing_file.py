@@ -11,7 +11,7 @@ Returns:
   bool: True if edit was successful, False if file not found
 """
 import os
-from ..utils.ai import ai
+from helpers.ai import ai
 
 def edit_existing_file(env, filepath, query):
   # Get absolute path by joining env and filepath

@@ -4,9 +4,9 @@ from typing import Any, Callable, Literal, get_origin
 from litellm import ContextWindowExceededError
 from pydantic import BaseModel
 
-from .utils.ai import dspy, lm
+from helpers.ai import dspy, lm
 from dspy.primitives.program import Module
-from dspy.adapters.types.tool import Tool
+from dspy.primitives.tool import Tool
 from dspy.signatures.signature import ensure_signature
 import json
 
