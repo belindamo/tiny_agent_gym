@@ -4,3 +4,4 @@ runs/
 helpers/next_exp_number
 tasks/
 **.egg-info/
+scratch**
