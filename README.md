@@ -107,7 +107,7 @@ For batch processing or programmatic use:
 uv run main.py --agent react --tasks example
 
 # The task file path can be specified without .json extension
-uv run main.py --agent react --tasks task_001_write_a_hello
+uv run main.py --agent react --tasks example
 ```
 
 ## Task File Structure

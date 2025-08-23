@@ -18,6 +18,33 @@ class QAAgent:
     def __init__(self, dir_name):
         self.dir_name = dir_name
         self.prompt_tokens = 0
+
+    # async def _load_chat_sessions_into_server_memory(self, session: ClientSession, chat_sessions: List[Dict[str, str]]):
+    #     """Load chat logs into the server memory."""
+    #     print(f"Loading {len(chat_sessions)} chat messages into server memory...")
+
+    #     for idx, chat_session in enumerate(chat_sessions):
+    #         formatted_chat = ""
+    #         messages = chat_session.get('messages', [])
+    #         for message in messages:
+    #             role = message.get('role', 'unknown')
+    #             content = message.get('content', '')
+    #             formatted_message = f"{role}: {content}"
+    #             formatted_chat += formatted_message + "\n"
+                
+    #         result = await session.call_tool("create_entities", {
+    #             "name": f"Chat Session {idx}",
+    #             "episode_body": formatted_chat,
+    #             "source": "message",
+    #             "source_description": f"Chat session {idx} log.",
+    #             "group_id": "agent_session"
+    #         })
+            
+    #         print(f"Added chat session {idx} to server memory.")
+            
+    #         # Wait so that the episode are processed
+    #         await asyncio.sleep(10)
+    #     return
     
     async def _load_chat_sessions_into_graphiti(self, session: ClientSession, chat_sessions: List[Dict[str, str]]):
         """Load chat logs into the Graphiti knowledge graph with session isolation."""
@@ -73,12 +100,19 @@ class QAAgent:
                 "--group-id", "agent_session"
             ],
             env={
-                "NEO4J_URI": os.environ.get("NEO4J_URI", "bolt://localhost:8080"),
+                "NEO4J_URI": os.environ.get("NEO4J_URI", "neo4j://127.0.0.1:7687"),
                 "NEO4J_USER": os.environ.get("NEO4J_USER", "neo4j"), 
                 "NEO4J_PASSWORD": os.environ.get("NEO4J_PASSWORD", "demodemo"),
                 "OPENAI_API_KEY": os.environ.get("OPENAI_API_KEY"),
             }
         )
+        # SERVER_PARAMS_MEM = StdioServerParameters(
+        #   command="npx",
+        #   args=[
+        #     "-y",
+        #     "@modelcontextprotocol/server-memory"
+        #   ]
+        # )
                 
         actions = Actions(self.dir_name)
         tool_list = []
@@ -197,14 +231,13 @@ async def test_qa_agent(task_file, agent_name):
     task = json_to_task(task_file)
     
     # write chat sessions into directory
-    # TODO make chat_log directory 
     chat_log_dir = Path("envs") / task.dir_name / "chat_logs"
     chat_log_dir.mkdir(parents=True, exist_ok=True)
     
     task_dict = json.load(open(task_file))
     for idx, session in enumerate(task_dict[0]['sessions']):
         chatlog_path = chat_log_dir / f"session_{idx}.json"
-        with open(chatlog_path, "w") as f:
+        with open(chatlog_path, "w", encoding="utf-8") as f:
             json.dump(session, f, indent=2) 
 
     run = Run(
@@ -253,25 +286,24 @@ if __name__ == "__main__":
     
     from helpers.models import Task, Run
     
-    task_file = "tasks/longmemeval/longmemeval_10.json"
+    task_file = str(gym_dir / "tasks/longmemeval/longmemeval_10.json")
     agent_name = "test_agent"
     
-    task_files = ["tasks/longmemeval/longmemeval_10.json"]
-    
+    task_files = [str(gym_dir / "tasks/longmemeval/longmemeval_10.json")] # add all task files you want to run
     # # Run the test
-    # for task_file in task_files:
-    #     asyncio.run(test_qa_agent(task_file, agent_name))
+    for task_file in task_files:
+        asyncio.run(test_qa_agent(task_file, agent_name))
     
     # # Run the evaluation
-    for task_file in task_files:
-        asyncio.run(evaluate_agent(task_file, agent_name))
+    # for task_file in task_files:
+    #     asyncio.run(evaluate_agent(task_file, agent_name))
 
-    # Summarize the results
-    total_score = 0
-    for task_file in task_files:
-        task = json_to_task(task_file)
-        result_path = "envs" / Path(task.dir_name) / "result.json"
-        result = json.load(result_path.open())
-        score = result['passed'] == True
-        total_score += score
-    print(f"Average score: {total_score / len(task_files)}")
+    # # Summarize the results
+    # total_score = 0
+    # for task_file in task_files:
+    #     task = json_to_task(task_file)
+    #     result_path = "envs" / Path(task.dir_name) / "result.json"
+    #     result = json.load(result_path.open())
+    #     score = result['passed'] == True
+    #     total_score += score
+    # print(f"Average score: {total_score / len(task_files)}")
