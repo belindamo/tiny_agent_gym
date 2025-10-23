@@ -110,6 +110,21 @@ uv run main.py --agent react --tasks example
 uv run main.py --agent react --tasks example
 ```
 
+## Running Research Tasks with Multi-Agent System
+
+For complex research tasks that require multiple evaluation criteria, use the `cc_multiagent` agent:
+
+```bash
+# Run the memory systems research task
+uv run main.py --agent cc_multiagent --tasks batch001/bm/memory_systems_in_action
+```
+
+The `cc_multiagent` system uses:
+- **Actor Agent**: Implements the research proposal step by step
+- **Multiple Critic Agents**: Validate code compilation, test execution, implementation completeness, experiment parameters, and metrics/logging
+- **Quality Gates**: Ensures all critics pass before task completion
+- **Automatic Iteration**: Actor receives feedback and iterates until all criteria are met
+
 ## Task File Structure
 
 Tasks are stored as JSON arrays with this structure:

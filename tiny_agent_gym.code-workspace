@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../.."
+		},
+		{
+			"path": "../../../../graphiti"
+		},
+		{
+			"path": "../../../kg_mem"
+		}
+	],
+	"settings": {}
+}

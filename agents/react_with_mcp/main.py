@@ -1,3 +1,4 @@
+from ast import Str
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
@@ -30,14 +31,21 @@ class ReactAgent:
           )
 
         # MCP BUILT-IN MEMORY
-        SERVER_PARAMS_MEM = StdioServerParameters(
-          command="npx",
-          args=[
-            "-y",
-            "@modelcontextprotocol/server-memory"
-          ]
-        )
+        # SERVER_PARAMS_MEM = StdioServerParameters(
+        #   command="npx",
+        #   args=[
+        #     "-y",
+        #     "@modelcontextprotocol/server-memory"
+        #   ]
+        # )
 
+        SERVER_PARAMS_MEM = StdioServerParameters(
+              command="fastmcp",
+              args=[
+                "run",
+                "/Users/bmo/kg-gen/mcp/server.py"
+              ]
+            )
                 
         class ExecuteExperiment(dspy.Signature):
           """Execute this experiment based on the conditions provided."""
@@ -77,7 +85,7 @@ class ReactAgent:
 
                         # Configure and run the ReAct agent
                         print("\nConfiguring ReAct agent...")
-                        react = ReAct(ExecuteExperiment, tools=dspy_tools)
+                        react = ReAct(ExecuteExperiment, tools=dspy_tools, strict_iters=10)
 
                         print("Running ReAct agent...")
                         result = await react.acall(task=task)

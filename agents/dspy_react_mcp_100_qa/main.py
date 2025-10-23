@@ -1,6 +1,7 @@
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
+from .utils.load_chat_sessions import load_chat_sessions_into_graphiti, load_chat_sessions_into_server_memory
 from helpers.models import Run, AgentResult, agent_main, Task
 from helpers.ai import dspy, lm
 from .react import ReAct
@@ -46,36 +47,7 @@ class QAAgent:
     #         await asyncio.sleep(10)
     #     return
     
-    async def _load_chat_sessions_into_graphiti(self, session: ClientSession, chat_sessions: List[Dict[str, str]]):
-        """Load chat logs into the Graphiti knowledge graph with session isolation."""
-        print(f"Loading {len(chat_sessions)} chat messages into Graphiti...")
-
-        for idx, chat_session in enumerate(chat_sessions):
-            try:
-                formatted_chat = ""
-                # Each session has a 'messages' field containing the actual messages
-                messages = chat_session.get('messages', [])
-                for message in messages:
-                    role = message.get('role', 'unknown')
-                    content = message.get('content', '')
-                    formatted_message = f"{role}: {content}"
-                    formatted_chat += formatted_message + "\n"
-                
-                result = await session.call_tool("add_memory", {
-                    "name": f"Chat Session {idx}",
-                    "episode_body": formatted_chat,
-                    "source": "message",
-                    "source_description": f"Chat session {idx} log.",
-                    "group_id": "agent_session"
-                })
-                
-            except Exception as e:
-                print(f"Error loading session {idx}: {str(e)}")
-                
-            # Wait so that the episode are processed
-            await asyncio.sleep(10)
-        return
-              
+    
     async def run(self, task: str) -> str:
         """
         Executes the given question answering task using chat logs and ReAct framework.
@@ -89,30 +61,30 @@ class QAAgent:
         print(f"--- Starting Chat Agent ---")
         print(f"Question: {task}")
 
-        # Only need memory server for chat analysis
-        SERVER_PARAMS_MEM = StdioServerParameters(
-            command=os.path.expanduser("~/.local/bin/uv"),
-            args=[
-                "run",
-                "--directory", str(Path(__file__).parent.parent.parent / "graphiti" / "mcp_server"),
-                "graphiti_mcp_server.py",
-                "--transport", "stdio",
-                "--group-id", "agent_session"
-            ],
-            env={
-                "NEO4J_URI": os.environ.get("NEO4J_URI", "neo4j://127.0.0.1:7687"),
-                "NEO4J_USER": os.environ.get("NEO4J_USER", "neo4j"), 
-                "NEO4J_PASSWORD": os.environ.get("NEO4J_PASSWORD", "demodemo"),
-                "OPENAI_API_KEY": os.environ.get("OPENAI_API_KEY"),
-            }
-        )
+        # # Only need memory server for chat analysis
         # SERVER_PARAMS_MEM = StdioServerParameters(
-        #   command="npx",
-        #   args=[
-        #     "-y",
-        #     "@modelcontextprotocol/server-memory"
-        #   ]
+        #     command=os.path.expanduser("~/.local/bin/uv"),
+        #     args=[
+        #         "run",
+        #         "--directory", str(Path(__file__).parent.parent.parent / "graphiti" / "mcp_server"),
+        #         "graphiti_mcp_server.py",
+        #         "--transport", "stdio",
+        #         "--group-id", "agent_session"
+        #     ],
+        #     env={
+        #         "NEO4J_URI": os.environ.get("NEO4J_URI", "neo4j://127.0.0.1:7687"),
+        #         "NEO4J_USER": os.environ.get("NEO4J_USER", "neo4j"), 
+        #         "NEO4J_PASSWORD": os.environ.get("NEO4J_PASSWORD", "demodemo"),
+        #         "OPENAI_API_KEY": os.environ.get("OPENAI_API_KEY"),
+        #     }
         # )
+        SERVER_PARAMS_MEM = StdioServerParameters(
+          command="npx",
+          args=[
+            "-y",
+            "@modelcontextprotocol/server-memory"
+          ]
+        )
                 
         actions = Actions(self.dir_name)
         tool_list = []
@@ -123,10 +95,10 @@ class QAAgent:
             async with ClientSession(read_1, write_1) as session_1:
                 await session_1.initialize()
                 
-                # Clear the graphiti database
-                print("Clearing graphiti database...")
-                result = await session_1.call_tool("clear_graph")
-                print(f"MPC Message: {result}")
+                # # Clear the graphiti database
+                # print("Clearing graphiti database...")
+                # result = await session_1.call_tool("clear_graph")
+                # print(f"MPC Message: {result}")
                 
                 # Load each session one by one from the env file
                 print("Loading chat logs into memory...")
@@ -134,7 +106,7 @@ class QAAgent:
                 for session_file in self.dir_name.glob("chat_logs/session_*.json"): 
                     with open(session_file, "r") as f:
                         chat_sessions.append(json.load(f))
-                await self._load_chat_sessions_into_graphiti(session_1, chat_sessions)
+                await load_chat_sessions_into_server_memory(session_1, chat_sessions)
 
                 # Get available tools after loading data
                 tools_1 = await session_1.list_tools()
@@ -213,10 +185,22 @@ async def main(r: Run):
     agent = QAAgent(dir_name=dir_name)
     result = await agent.run(task=task)
     
+    # Convert usage object to dict to avoid JSON serialization issues
+    usage_data = lm.history[-1]["usage"]
+    if hasattr(usage_data, 'model_dump'):
+        # If it's a Pydantic model, use model_dump
+        usage_dict = usage_data.model_dump()
+    elif hasattr(usage_data, '__dict__'):
+        # If it has __dict__, convert to dict
+        usage_dict = dict(usage_data.__dict__)
+    else:
+        # Fallback: try to convert directly
+        usage_dict = dict(usage_data) if usage_data else {}
+    
     formatted_answer = {"question_id": r.task.task_id, 
                         "answer": result.answer, 
                         "cost": lm.history[-1]["cost"], 
-                        "usage": lm.history[-1]["usage"]
+                        "usage": usage_dict
                     }
     
     # Write answer to hypothesis.json
